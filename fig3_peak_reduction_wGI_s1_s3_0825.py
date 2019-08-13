@@ -43,8 +43,8 @@ rain_i = 0.5 # in/hr
 DR=6
 bern_h= 6
 gi_s_p = 0.05
-Tr = 1
-Tn = 1
+Tr = 5
+Tn = 3
 tgi = bern_h/(rain_i*DR)
 tn =Tn*tgi
 tr = Tr*tgi
@@ -182,7 +182,7 @@ plt.ylabel("Discharge (mm/h)")
 #plt.legend(loc='upper right')
 plt.tight_layout()
 
-plt.savefig("Three_sub_fig3_Tr_1_Tn_1_dr_6_tgi_2" )
+plt.savefig("Three_sub_fig3_Tr_5_Tn_3_dr_6_tgi_2" )
 #
 
 

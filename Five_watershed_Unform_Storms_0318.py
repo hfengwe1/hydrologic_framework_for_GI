@@ -162,10 +162,7 @@ for location in range (0,6):
 
     
     Q_fl_a = np.array(Q_fl)             # array of overflow (volume)
-#    Q_fl_i = np.where(Q_fl_a>0)         # the index of the overflow
-#    cso_b = np.array(cso_i)[Q_fl_i]     # find the storm index of the CSOs
-#    cso_b = np.append(cso_b,[0])        # add 0
-#    Q_fl_b = Q_fl_a[Q_fl_i]             # overflows only
+
     cso_a = []
     cso_v = []
 # calcluate CSO volume for individual storms    
@@ -213,10 +210,7 @@ for location in range (0,6):
     Peak_t.append(peak)
     print "Peak flow = %s" %peak
         
-#data_cso = np.zeros(len(cso_id))
 data_s['CSO_V'] = CSO_V[0]
-#data_cso_re = np.zeros(len(cso_id))
-#data_cso[CSO_it[0].astype(int)] = CSO_V[0]
 
     #%%  save to file
 #import pickle
@@ -271,9 +265,7 @@ S_gi = gi_s_p*bern_h/12*7.48*43560/1000 # 5.43 kgal GI's storage
 
 ## GI at S1   
 location=np.arange(1,6,1)
-#cri1 = (XX[CSO_it[0].astype(int),2]<100)*(XX[CSO_it[0].astype(int),2]>0.0)
 cso_m = CSO_it[0].astype(int)
-#cso_i_m = np.arange(len(CSO_it[0]))  # the index of the storms satisfying the criteria
 
 
 for loc in np.arange(0,5,1):
@@ -307,12 +299,7 @@ for loc in np.arange(0,5,1):
 #    plt.xlim(0.6,10)
 #    plt.ylim(0.1,10)
     plt.rcParams.update({'font.size': 14})
-#    plt.legend(loc="lower left", markerscale=1., scatterpoints=1, fontsize=10)   
-#    lgnd = plt.legend(loc="upper left", scatterpoints=1, fontsize=13)
-#    lgnd.legendHandles[0]._sizes = [50]
-#    lgnd.legendHandles[1]._sizes = [50]
-#    lgnd.legendHandles[2]._sizes = [50]
-#    lgnd.legendHandles[3]._sizes = [50]   
+ 
 
  #change the marker size manually for both lines
 

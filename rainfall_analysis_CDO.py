@@ -6,159 +6,119 @@ v2_ prepare plots for supplementary materiala
 
 @author: fengwei
 """
-import matplotlib as mpl
-mpl.use('agg')
-import numpy as np
-import matplotlib.pyplot as plt
-#from histogram_storm import storm_hist
-import pandas as pd
 
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import time
 from matplotlib import rcParams
 rcParams['font.family'] = 'serif'
 import os
-os.chdir('C:/School/2nd Paper/model')
+os.chdir('C:/School/2nd Paper/model')  # change the working directory
 from def_storm_CDO import storm_id
-
-
-#%%Load inputs==============================================================================
 start_time = time.clock()
 
-#filename = 'Seattle_1984_20140101.csv'  # unit: kg/m2 =mm/hr
-#filename = 'PhiadlephiaAirport_1980-2013.csv'  # unit: kg/m2 =mm/hr
-filename = 'Philadelphia_1980_2013.csv'
-city = 'Philadelphia'
-#run_dates =     ['2009-01-01', '2013-12-31']
-run_dates =     ['1980-01-01', '2013-12-31']
-P_crit = 0.2
-P_lag = 3
-metric = 'in'
-cutoff = 1  # minimum rainfall (mm)
-df_P, data_s = storm_id(filename, run_dates, P_crit,P_lag, metric, cutoff)
-result=city+'_storms_'+run_dates[0]+run_dates[1]+'.xlsx'
-data_s.to_excel(result, sheet_name='sheet1', index='true')
-#%%
-# Histogram Storm Duration
-plt.rcParams.update({'font.size': 16})
-plt.figure(figsize=(8, 12))
-plt.subplot(411)
-data_new= data_s[data_s['v']>12.5]
-#x = np.array(data_s['length'])
-x = np.array(data_new['length'])
+#%%Load inputs==============================================================================
+    # City name can only be "Philadelphia" or "Seattle"; this could be expanded when more data sets are added.
+    # Data set need to be placed in the same folder
+    #    filename: precipitation data in in/hr
+    #    metric: output unit - mm or in       
+    #    run_dates: from xxxx-xx-xx to xxxx-xx-xx
+    #    P_crit   # threshold to be considered part of a storm in output metric 
+    #    P_lag:  the stop time between storms to be considered as separate storms (hour)
+city = 'Philadelphia'        # city name
+city = 'Seattle'
 
+if city == 'Philadelphia':   
+    filename = 'Philadelphia_1980_2013.csv' # data unit in/hr
+elif city == 'Seattle':
+    filename = 'Seattle_1980_2013.csv'  # unit: # unit: in/hr
+else:
+    print('precipitation data does not exist')
+
+metric = 'mm'   # mm or in         
+run_dates =     ['1980-01-01', '2013-12-31']   # data start date and end date    
+P_crit = 0.2    # minimum precipitation for a storm
+P_lag = 3       # hour        
+
+df_P, data_s = storm_id(filename, run_dates, P_crit,P_lag, metric)  # generate a dataframe of the storm characteristics
+    # df_P: precipitation record
+    # data_s: a dataframe constains columns of 
+    # max_i: max intensity, 80perc_i: 80% intensity, 90perc_i: 90% intensity, mean_i: mean intensity, 
+    # storm_id: storm id, length: storm duration, v: total volume of the storm
+result = city+'_storms_'+run_dates[0]+run_dates[1]+'.xlsx'  # save the storm characteristics dataframe to excel
+data_s.to_excel(result, sheet_name='sheet1', index='true')
+data_s = pd.read_excel(open(result, 'rb'))   # retrive the results by reading the excel file
+#%%
+# storms with total volume less than 5 mm is removed from this analysis
+data_new= data_s[data_s['v']>1]  
+
+# Histograms
+plt.rcParams.update({'font.size': 18})
+plt.figure(figsize=(6, 12))
+    # Histogram Storm Mean Intensity
+plt.subplot(411)
+x = np.array(data_new['length']) #
 bins = np.arange(0,50,2)
-x_label = 'Storm Duration (Hr)'
+x_label = 'Storm Duration (h)'
 n,bins,patches = plt.hist(x, bins= bins)
 plt.xlabel(x_label)
 plt.ylabel('Frequency')
 axes = plt.gca()
-axes.set_xlim([0,50])
-#plt.title('Storm Histogram')
+axes.set_ylim([0,1000])  # set y-axis
+axes.set_xlim([0,50])   # set x-axis
+axes.set_yticks(np.arange(0, 1000, step=250))
+axes.set_xticks(np.arange(0, 50, step=10))
 plt.grid(True)
-# Histogram Storm Mean Intensity
+
+    # Histogram Total Rainfall (mm)
 plt.subplot(412)
-x = np.array(data_new['i'])
-bins = np.arange(0,12,0.5)
-x_label = 'Storm Mean Intensity (mm/hr)'
-n,bins,patches = plt.hist(x, bins=bins)
-plt.xlabel(x_label)
-plt.ylabel('Frequency')
-axes = plt.gca()
-axes.set_xlim([0,12])
-#plt.title('Storm Histogram')
-plt.grid(True)
-# Histogram Total Rainfall (mm)
-plt.subplot(413)
 x = np.array(data_new['v'])
-bins=np.arange(12,70,3)
+bins=np.arange(5,70,3)
 x_label = 'Total Rainfall (mm)'
 n,bins,patches = plt.hist(x, bins= bins)
 plt.xlabel(x_label)
 plt.ylabel('Frequency')
 axes = plt.gca()
-axes.set_xlim([10,70])
+axes.set_ylim([0,600])  # set y-axis
+axes.set_xlim([5,70])   # set x-axis
+axes.set_yticks(np.arange(0, 610, step=200))
+axes.set_xticks(np.arange(10, 70, step=10))
 plt.grid(True)
-# Histogram Maximum Intensity (mm.hr)
-plt.subplot(414)
-x = np.array(data_new['max_i'])
-bins = np.arange(0,25,1)
-x_label = 'Maximum Intensity (mm/hr)'
+
+    # Histogram Storm Mean Intensity
+plt.subplot(413)
+x = np.array(data_new['mean_i'])
+bins = np.arange(0,12,0.5)
+x_label = 'Storm Mean Intensity (mm/h)'
 n,bins,patches = plt.hist(x, bins=bins)
 plt.xlabel(x_label)
 plt.ylabel('Frequency')
-#plt.title('Storm Histogram')
+axes = plt.gca()
+axes.set_ylim([0,850])  # set y-axis
+axes.set_xlim([0,12])   # set x-axis
+axes.set_yticks(np.arange(0, 850, step=200))
+axes.set_xticks(np.arange(0, 12, step=2))
+plt.grid(True)
+
+    # Histogram Maximum Intensity (mm.hr)
+plt.subplot(414)
+x = np.array(data_new['max_i'])
+bins = np.arange(0,25,1)
+x_label = 'Maximum Intensity (mm/h)'
+n,bins,patches = plt.hist(x, bins=bins)
+plt.xlabel(x_label)
+plt.ylabel('Frequency')
 plt.grid(True)
 axes = plt.gca()
-axes.set_xlim([0,25])
+axes.set_ylim([0,750])  # set y-axis
+axes.set_xlim([0,25])   # set x-axis
+axes.set_yticks(np.arange(0, 780, step=250))
+axes.set_xticks(np.arange(0, 25, step=5))
 plt.tight_layout()
-plt.savefig("Fig1_Histogram_%s_%s_%s .png" %(run_dates[0],run_dates[1],filename))
-
-#%% Cluster
-#from sklearn.cluster import KMeans
-#from sklearn.preprocessing import StandardScaler
-##from sklearn.datasets import make_blobs
-##
-##X, y = make_blobs(n_samples=n_samples, random_state=random_state)
-##X = data_p.values()
-#N =len(data_s['i'])
-#XX=range(N)
-#for i in range(N):
-#    XX[i]=[data_s['i'][i],data_s['v'][i],data_s['max_i'][i]] #  duration, mean i, volume, max_i
-#
-## Cluster
-#scaler = StandardScaler()
-#scaler.fit(XX)
-#Y = scaler.transform(XX)
-#y_pred = KMeans(n_clusters=3).fit_predict(Y)
-#XX = np.array(XX)
-#plt.figure(figsize=(12, 12))
-#
-#plt.subplot(311)
-#plt.scatter(XX[:,1], XX[:,0], c=y_pred,marker='x')  # vol, mean_i
-#plt.xlabel("Total Rainfall (mm)")
-#plt.ylabel("Mean(i)(mm/hr)")
-##plt.title("Volume vs Mean(i)")
-#plt.grid()
-#
-#plt.subplot(312)
-#plt.scatter(XX[:,2], XX[:,0], c=y_pred,marker='x')  # max_i, mean(i)
-#plt.xlabel("Maximum intensity(mm/hr)")
-#plt.ylabel("Mean(i)(mm/hr)")
-#plt.grid()
-#
-#
-#plt.subplot(313)
-#plt.scatter(XX[:,2], XX[:,1], c=y_pred,marker='x')  # max_i, vol
-#plt.ylabel("Total Rainfall (mm)")
-#plt.xlabel("Maximum intensity(mm/hr)")
-##plt.title("Max(i) vs Volume")
-#plt.grid()
+plt.savefig("Fig1_Histogram_%s_%s_%s_1mm .png" %(run_dates[0],run_dates[1],filename))
 
 
-#%%
-
-#XX=range(N)
-##XX=np.array(N)
-#for i in range(N):
-#    XX[i]=[data_s['v'][i],data_s['max_i'][i]] #  duration, mean i, volume, max_i
-#
-## Cluster
-#scaler = StandardScaler()
-#scaler.fit(XX)
-#Y = scaler.transform(XX)
-#y_pred = KMeans(n_clusters=3).fit_predict(Y)
-#XX = np.array(XX)
-#plt.figure(figsize=(12, 12))
-#
-#plt.subplot(311)
-#plt.scatter(XX[:,1], XX[:,0], c=y_pred,marker='x')  # vol, mean_i
-#plt.xlabel("Maximum Intensity (mm/hr)")
-#plt.ylabel("Total rainfall(mm)")
-##plt.title("Volume vs Mean(i)")
-#plt.grid()
-#
-#
-#
 
 
 

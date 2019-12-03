@@ -27,7 +27,7 @@ start_time = time.clock()
     #    P_crit   # threshold to be considered part of a storm in output metric 
     #    P_lag:  the stop time between storms to be considered as separate storms (hour)
 city = 'Philadelphia'        # city name
-city = 'Seattle'
+#city = 'Seattle'
 
 if city == 'Philadelphia':   
     filename = 'Philadelphia_1980_2013.csv' # data unit in/hr
@@ -48,10 +48,10 @@ df_P, data_s = storm_id(filename, run_dates, P_crit,P_lag, metric)  # generate a
     # storm_id: storm id, length: storm duration, v: total volume of the storm
 result = city+'_storms_'+run_dates[0]+run_dates[1]+'.xlsx'  # save the storm characteristics dataframe to excel
 data_s.to_excel(result, sheet_name='sheet1', index='true')
-data_s = pd.read_excel(open(result, 'rb'))   # retrive the results by reading the excel file
+#data_s = pd.read_excel(open(result, 'rb'))   # retrive the results by reading the excel file
 #%%
 # storms with total volume less than 5 mm is removed from this analysis
-data_new= data_s[data_s['v']>1]  
+data_new= data_s[data_s['v']>5]  
 
 # Histograms
 plt.rcParams.update({'font.size': 18})
@@ -116,7 +116,7 @@ axes.set_xlim([0,25])   # set x-axis
 axes.set_yticks(np.arange(0, 780, step=250))
 axes.set_xticks(np.arange(0, 25, step=5))
 plt.tight_layout()
-plt.savefig("Fig1_Histogram_%s_%s_%s_1mm .png" %(run_dates[0],run_dates[1],filename))
+plt.savefig("Fig1_Histogram_%s_%s_%s_5mm .png" %(run_dates[0],run_dates[1],filename))
 
 
 

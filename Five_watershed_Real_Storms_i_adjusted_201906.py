@@ -11,9 +11,7 @@ import matplotlib.pyplot as plt
 from cat_runoff_w_infil import sub_runoff
 from cat_runoff_w_infil import Muskingun
 import pandas as pd
-#from def_storm_CDO import storm_id
-from def_storm_CDO import storm_id_adjusted
-from rainfall_analysis_hour import storms
+from def_storm_CDO import storm_id
 from scipy.special import lambertw
 
 #from Hydrograph_plot import Muskingun_plot 
@@ -51,7 +49,7 @@ metric = 'in' # indicate the metric in the input file: mm or in
 End_year = 1981
 run_dates =     ['1980-01-01', str(End_year)+'-12-31']
 n_yr = End_year-1980
-df_P1, data_s = storm_id_adjusted(filename, run_dates,P_crit, P_lag,metric)   # mean_i, length, max_i, storm_id, volume(mm)
+df_P1, data_s = storm_id(filename, run_dates,P_crit, P_lag,metric)   # mean_i, length, max_i, storm_id, volume(mm)
 df_P = df_P1.resample('10min').bfill()
 rain= df_P['P'].values.tolist()
 
@@ -148,8 +146,8 @@ for location in range (0,6):
                 cso_i.append(0)
                 Q_fl.append(0)  
             
-    df_P['cso_i'] = cso_i  
-    df_P['Infil'] = Ft  
+#    df_P['cso_i'] = cso_i  
+#    df_P['Infil'] = Ft  
     Q_fl_a = np.array(Q_fl)             # array of overflow (volume)
     cso_a = []
     cso_v = []
@@ -170,6 +168,34 @@ for location in range (0,6):
             f_v.append(f_vol)
             cso_vol = 0
             f_vol = 0    
+#    s_id = 0
+#    for i in np.arange(0,len(Q_fl)-1):
+#        if df_P['storm_id'][i]>0:
+#            s_id = df_P['storm_id'][i]
+#            cso_vol = cso_vol + Q_fl_a[i]*7.48/(1000) # kgal
+#            f_vol = f_vol + Ft[i]                      #kgal
+#            print('s_id = %s' %s_id)
+#            print('cso_vol = %s' %cso_vol)
+#            if df_P['storm_id'][i+1]==0:   
+#                df_P['storm_id'][i+1] = s_id          # a new storm
+#                if i == len(Q_fl)-2:                  # the end of the data
+#                    cso_v.append(cso_vol)
+#                    f_v.append(f_vol)
+#                    if cso_vol>0.0001:
+#                        cso_a.append(int(s_id))
+#
+#                cso_vol=0      
+#                f_vol = 0
+#            elif df_P['storm_id'][i] < df_P['storm_id'][i+1] or i == len(Q_fl)-2:
+#                cso_v.append(cso_vol)
+#                f_v.append(f_vol)
+#                if cso_vol>0.0001:
+#                    cso_a.append(int(s_id))
+##                print('s_id = %s' %s_id)
+##                print('cso_vol = %s' %cso_vol)
+#                cso_vol=0
+#                f_vol = 0
+
     CSO_V.append(np.array(cso_v))
     F_V.append(f_v) 
     cso_f=len(cso_a)     ## count number of CSO event
@@ -203,7 +229,6 @@ data_s.iloc[CSO_it[4],9] = F_V[4]   # infiltration of the persisting CSOs
 #data_cso[CSO_it[0].astype(int)] = CSO_V[0]
 
     #%%  save to file
-#import pickle
 writer = pd.ExcelWriter('%s_Storm_dataframe_i_adjusted.xlsx' %city)
 data_s.to_excel(writer,'Data_s')
 
@@ -386,10 +411,10 @@ np.savetxt("cso_y_n.csv",dn, fmt='%5s',delimiter=",")
 #np.corrcoef(cso_y_l[4],cso_y_l[5]) 
 
 #%% Read csv files 
-#v_temp = pd.read_csv('cso_y_l.csv', sep=',',header=None)
-#cso_y_l = v_temp.values
-#n_temp = pd.read_csv('cso_y_n.csv', sep=',',header=None)
-#cso_y_n = n_temp.values
+v_temp = pd.read_csv('cso_y_l.csv', sep=',',header=None)
+cso_y_l = v_temp.values
+n_temp = pd.read_csv('cso_y_n.csv', sep=',',header=None)
+cso_y_n = n_temp.values
 #%% Plot CSO reduction
 
 CSO_yrm=[]
@@ -557,5 +582,70 @@ plt.tight_layout()
 plt.grid()
 plt.savefig("Fig10_GN_%s_tn_%s_Tn_Tr_dr_%s.png" %(city,tn,DR))
 
+#%% Adjust the envelope lines  
+#color1 =['b','y','g','r','c','k','m','g','r','lightgreen']
+#Alpha = 0.5
+#XX=range(N)
+#for i in range(N):
+#    XX[i]=[data_s['length'][i], data_s[i_metric][i],data_s['v'][i],data_s['max_i'][i],data_s['storm_id'][i]] #  duration, mean i, volume, max_i
+#XX = np.array(XX)
+#
+## XX[ length, i , volume, max_i]
+#loc_irr = list(set(CSO_re[0]).intersection(CSO_re[1],CSO_re[2],CSO_re[3],CSO_re[4]))
+#loc_rel = list(set(CSO_re[0]).union(CSO_re[1],CSO_re[2],CSO_re[3],CSO_re[4])- set(loc_irr)) 
+#CSOs = list(set(CSO_it[0].astype(int))-set(loc_rel)- set(loc_irr))
+#nonCSO=list(set(range(len(XX))) - set(CSOs) -set(loc_rel)- set(loc_irr))
+#
+#cso_m = CSO_it[0].astype(int)
+#
+#s1 = 40  # the circle size on the figure
+#qcso= cutoff
+#HN = tn*qcso*DR/bern_h
+#a = 3/5 # adjustion fraction for the storage increase from infiltration of long duration storms
+## only appied to the horozontal bound 
+#env_y = []
+#Hn_x=HN
+#Hn_y=HN*a
+#Hn=HN
+#Tr = np.arange(Hn+0.001,6,0.01)
+#
+#for Tr1 in Tr:
+#    zz = -(np.exp(-Tr1/Hn)*Tr1/Hn)
+##    print(zz)
+#    w = lambertw(zz,0)
+#    Tn1 = (Hn*Tr1)/(Tr1+Hn*w.real)
+#    env_y.append(Tn1-HN*(1-a))
+##plt.plot(env_y)
+## show non CSO storm events
+#plt.figure(figsize=(8, 6))  # Volume vs Maximum Intensity
+#ax = plt.gca()
+#plt.plot([Hn_x,10],(Hn_y)*np.ones(2), c='b',label = 'GN-Adjusted Lower Bound')   # y = HN
+#plt.plot(Hn_x*np.ones(2),[Hn_y,10], c ='b')                    # x = HN
+#plt.scatter(XX[nonCSO,2]*DR/(bern_h), XX[nonCSO,1]*tn*DR/(bern_h),s=s1, c='grey',
+#                   marker=markers1[0], alpha=0.2, edgecolor="grey", label = 'Non-CSOs')
+## show CSO storms
+#plt.scatter(XX[CSOs,2]*DR/(bern_h), XX[CSOs,1]*tn*DR/(bern_h),s=s1, c='k',
+#                   marker=markers1[0], alpha=0.9, edgecolor="k", label = 'Persisting CSOs')
+## plot Loc-irrelevent storms
+#plt.scatter(XX[loc_irr,2]*DR/(bern_h), XX[loc_irr,1]*tn*DR/(bern_h), c='b',linewidths=0, marker=markers1[0], s=s1, alpha=1 ,edgecolor="b",
+#                label = 'Loc-irrelevant CSOs')  
+#plt.scatter(XX[loc_rel,2]*DR/(bern_h), XX[loc_rel,1]*tn*DR/(bern_h),  c='r',linewidths=0, marker=markers1[0], s=s1, alpha =Alpha,edgecolor="r",
+#                label = 'Loc-relevant CSOs')
+#plt.plot(Tr,env_y,label = 'GN-Ajusted Envelop',c='g')
+#ax.set_yscale('log')
+#ax.set_xscale('log')
+#
+#plt.ylabel("Tn")
+#plt.xlabel("Tr")
+#plt.xlim(0.01,10)
+#plt.ylim(0.01,10)
+#plt.rcParams.update({'font.size': 16})
+#plt.legend()
+#plt.legend(loc="upper left", scatterpoints=1, fontsize=12)
+#
+#plt.tight_layout()
+#
+#plt.grid()
+#plt.savefig("Fig11_GN_%s_tn_%s_Tn_Tr_dr_%s_adjusted_envelope_line_storage_adjusted.png" %(city,tn,DR))
 
 
